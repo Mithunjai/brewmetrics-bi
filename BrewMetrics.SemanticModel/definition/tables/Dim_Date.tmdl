@@ -1,0 +1,89 @@
+table Dim_Date
+	lineageTag: 76a8d13e-017a-4015-9320-0dc8f49d8f4e
+
+	column date
+		dataType: dateTime
+		formatString: Long Date
+		lineageTag: 26001f21-3de2-40b6-ab7b-9198085b7589
+		summarizeBy: none
+		sourceColumn: date
+
+		variation Variation
+			isDefault
+			relationship: 24dc4043-96b5-4227-ad52-53d92bf96246
+			defaultHierarchy: LocalDateTable_dcc2085b-d622-48f1-aacf-332206ccce4d.'Date Hierarchy'
+
+		annotation SummarizationSetBy = Automatic
+
+		annotation UnderlyingDateTimeDataType = Date
+
+	column Year
+		dataType: int64
+		formatString: 0
+		lineageTag: b9d72d4c-7f7c-4c3b-8863-3bdb0c333d1d
+		summarizeBy: sum
+		sourceColumn: Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column 'Month Number'
+		dataType: int64
+		formatString: 0
+		lineageTag: 37564b40-c8b9-45f1-9e69-674df5ab6411
+		summarizeBy: sum
+		sourceColumn: Month Number
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month
+		dataType: string
+		lineageTag: c2c7994e-4d02-4da6-8d16-18307fabb346
+		summarizeBy: none
+		sourceColumn: Month
+		sortByColumn: 'Month Number'
+
+		changedProperty = SortByColumn
+
+		annotation SummarizationSetBy = Automatic
+
+	column Month-Year
+		dataType: string
+		lineageTag: e64117d6-f679-47f4-8e2c-58eecc29aa88
+		summarizeBy: none
+		sourceColumn: Month-Year
+
+		annotation SummarizationSetBy = Automatic
+
+	column Day
+		dataType: int64
+		formatString: 0
+		lineageTag: 634e77c1-fb0a-455c-b3c3-5b5bcccdc214
+		summarizeBy: sum
+		sourceColumn: Day
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_Date = m
+		mode: import
+		source =
+				let
+				    Source = Fact_Sales,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"date"}),
+				    #"Inserted Year" = Table.AddColumn(#"Removed Other Columns", "Year", each Date.Year([date]), Int64.Type),
+				    #"Inserted Month" = Table.AddColumn(#"Inserted Year", "Month", each Date.Month([date]), Int64.Type),
+				    #"Removed Columns" = Table.RemoveColumns(#"Inserted Month",{"Month", "Year"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Columns"),
+				    #"Inserted Year1" = Table.AddColumn(#"Removed Duplicates", "Year", each Date.Year([date]), Int64.Type),
+				    #"Inserted Month1" = Table.AddColumn(#"Inserted Year1", "Month", each Date.Month([date]), Int64.Type),
+				    #"Inserted Month Name" = Table.AddColumn(#"Inserted Month1", "Month Name", each Date.MonthName([date]), type text),
+				    #"Renamed Columns" = Table.RenameColumns(#"Inserted Month Name",{{"Month", "Month Number"}, {"Month Name", "Month"}}),
+				    #"Added Custom" = Table.AddColumn(#"Renamed Columns", "Month-Year", each Date.ToText([date], "MMM-yyyy")),
+				    #"Inserted Day" = Table.AddColumn(#"Added Custom", "Day", each Date.Day([date]), Int64.Type),
+				    #"Removed Duplicates1" = Table.Distinct(#"Inserted Day")
+				in
+				    #"Removed Duplicates1"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+

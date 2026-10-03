@@ -1,0 +1,33 @@
+table Dim_City
+	lineageTag: 372815ff-e6d9-4789-b3cc-502101b7ec03
+
+	column city
+		dataType: string
+		lineageTag: 92ff9517-cf3e-4401-b56c-51914965b8b6
+		summarizeBy: none
+		sourceColumn: city
+
+		annotation SummarizationSetBy = Automatic
+
+	column store_format
+		dataType: string
+		lineageTag: c337cd23-289c-459a-9ec4-54cec0fc1ef4
+		summarizeBy: none
+		sourceColumn: store_format
+
+		annotation SummarizationSetBy = Automatic
+
+	partition Dim_City = m
+		mode: import
+		source =
+				let
+				    Source = Fact_Sales,
+				    #"Removed Other Columns" = Table.SelectColumns(Source,{"city", "store_format"}),
+				    #"Removed Duplicates" = Table.Distinct(#"Removed Other Columns", {"city"})
+				in
+				    #"Removed Duplicates"
+
+	annotation PBI_NavigationStepName = Navigation
+
+	annotation PBI_ResultType = Table
+
