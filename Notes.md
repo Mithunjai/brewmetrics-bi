@@ -22,4 +22,12 @@
 3. Create a DAX RANKX measure that ranks products by Total Sales in descending order.
 
 
-        
+        RANKX(
+        ALL(Dim_Product[item]),
+        [Total Sales],
+        ,
+        DESC,
+        DENSE
+    )
+
+
